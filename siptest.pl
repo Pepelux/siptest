@@ -21,15 +21,12 @@ my $to = '';		# destination number
 my $method = '';	# method to use (INVITE, REGISTER, OPTIONS)
 my $v = 0;		# verbose mode
 my $user = '';		# auth user
-my $proto = '';	# protocol
+my $proto = '';	# protocol (UDP, TCP)
 
 my $to_ip = '';
 my $from_ip = '';
 
 sub init() {
-    my $pini;
-    my $pfin;
- 
     # check params
     my $result = GetOptions ("h=s" => \$host,
 				"m=s" => \$method,
@@ -350,7 +347,7 @@ Usage: perl $0 -h <host> [options]
 -s  <integer>    = Source number (CallerID) (default: 100)
 -d  <integer>    = Destination number (default: 100)
 -r  <integer>    = Remote port (default: 5060)
--proto <string>  = Protocol (udp, tcp or all (both of them) - By default: ALL)
+-proto <string>  = Protocol (udp, tcp) - By default: UDP)
 -ip <string>     = Source IP (by default it is the same as host)
 -ua <string>     = Customize the UserAgent
 -v               = Verbose (trace information)
