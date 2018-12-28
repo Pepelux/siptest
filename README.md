@@ -1,4 +1,4 @@
-# SipTest
+# SipTest #
 
 SipTest is a simple tool to test some SIP messages. It is possible to send INVITE, REGISTER and OPTIONS.
 
@@ -27,3 +27,9 @@ $perl siptest.pl -h 192.168.0.1
 $perl siptest.pl -h 192.168.0.1 -m INVITE
 	To search SIP services on 192.168.0.1 port 5060 (using INVITE method)
 ```
+
+# Requirements #
+
+  * cpan -i IO:Socket:Timeout
+  * cpan -i NetAddr:IP
+  * cpan -i String:HexConvert
