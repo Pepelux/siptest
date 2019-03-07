@@ -18,6 +18,7 @@ my $lport = '';	# local port
 my $dport = '';	# destination port
 my $from = '';		# source number
 my $to = '';		# destination number
+my $fromname = ''; # from name
 my $method = '';	# method to use (INVITE, REGISTER, OPTIONS)
 my $v = 0;		# verbose mode
 my $user = '';		# auth user
@@ -32,6 +33,7 @@ sub init() {
 				"m=s" => \$method,
 				"d=s" => \$to,
 				"s=s" => \$from,
+				"fn=s" => \$fromname,
 				"ip=s" => \$from_ip,
 				"u=s" => \$user,
 				"l=s" => \$lport,
@@ -56,24 +58,25 @@ sub init() {
  	my $ip = inet_ntoa(inet_aton($host));
 	$from_ip = $ip if ($from_ip eq "");
 
-	scan($ip, $from_ip, $lport, $dport, $from, $to, $user, $proto);
+	send_message($ip, $from_ip, $lport, $dport, $from, $fromname, $to, $user, $proto);
 
 	exit;
 }
 
-sub scan {
+sub send_message {
 	my $to_ip = shift;
 	my $from_ip = shift;
 	my $lport = shift;
 	my $dport = shift;
 	my $from = shift;
+	my $fromname = shift;
 	my $to = shift;
 	my $user = shift;
 	my $proto = shift;
 
-	send_register($from_ip, $to_ip, $lport, $dport, $from, $to, $user, $proto) if ($method eq "REGISTER");
-	send_invite($from_ip, $to_ip, $lport, $dport, $from, $to, $user, $proto) if ($method eq "INVITE");
-	send_options($from_ip, $to_ip, $lport, $dport, $from, $to, $user, $proto) if ($method eq "OPTIONS");	
+	send_register($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $user, $proto) if ($method eq "REGISTER");
+	send_invite($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $user, $proto) if ($method eq "INVITE");
+	send_options($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $user, $proto) if ($method eq "OPTIONS");	
 }
  
 # Send REGISTER message
@@ -83,6 +86,7 @@ sub send_register {
 	my $lport = shift;
 	my $dport = shift;
 	my $from = shift;
+	my $fromname = shift;
 	my $to = shift;
 	my $user = shift;
 	my $proto = shift;
@@ -97,7 +101,7 @@ sub send_register {
 	
 		my $msg = "REGISTER sip:".$to_ip." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: <sip:".$user."@".$to_ip.">;tag=0c26cd11\r\n";
+		$msg .= "From: $fromname <sip:".$user."@".$to_ip.">;tag=0c26cd11\r\n";
 		$msg .= "To: <sip:".$user."@".$to_ip.">\r\n";
 		$msg .= "Contact: <sip:".$user."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Call-ID: ".$callid."\r\n";
@@ -159,12 +163,12 @@ sub send_invite {
 	my $lport = shift;
 	my $dport = shift;
 	my $from = shift;
+	my $fromname = shift;
 	my $to = shift;
 	my $user = shift;
 	my $proto = shift;
 	my $response = "";
 	my $cseq = 1;
-
 
 	my $sc = new IO::Socket::INET->new(PeerPort=>$dport, LocalPort=>$lport, Proto=>$proto, PeerAddr=>$to_ip, Timeout => 5);
 
@@ -247,6 +251,7 @@ sub send_options {
 	my $lport = shift;
 	my $dport = shift;
 	my $from = shift;
+	my $fromname = shift;
 	my $to = shift;
 	my $user = shift;
 	my $proto = shift;
