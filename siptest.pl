@@ -110,6 +110,7 @@ sub send_register {
 		my $data = "";
 		my $line = "";
 		my $cid = "";
+		my $ua = "";
 
 		print $sc $msg;
 
@@ -128,6 +129,15 @@ sub send_register {
 					if ($1) { $response = $1; }
 				}
 
+				if ($line =~ /user\-agent/i && $ua eq "") {
+					$line =~ /user\-agent\:\s(.+)\r\n/i;
+					$ua = $1 if ($1);
+				}
+				if ($line =~ /server/i && $ua eq "") {
+					$line =~ /server\:\s(.+)\r\n/i;
+					$ua = $1 if ($1);
+				}
+				
 				if ($line =~ /Call-ID/i) {
 					$line =~ /Call-ID\:\s(.+)\r\n/i;
  
@@ -138,7 +148,7 @@ sub send_register {
 					$data .= $line;
  
 					if ($line =~ /^\r\n/) {
-						print "[-] $response\n" if ($v ne 1);
+						print " => [$ua] $response\n" if ($v ne 1);
 						print "Receiving:\n=========\n$data" if ($v eq 1);
 
 						last LOOP if ($response !~ /^1/);
@@ -200,6 +210,7 @@ sub send_invite {
 		my $data = "";
 		my $line = "";
 		my $cid = "";
+		my $ua = "";
 
 		print $sc $msg;
 
@@ -215,6 +226,15 @@ sub send_invite {
 					if ($1) { $response = $1; }
 				}
 
+				if ($line =~ /user\-agent/i && $ua eq "") {
+					$line =~ /user\-agent\:\s(.+)\r\n/i;
+					$ua = $1 if ($1);
+				}
+				if ($line =~ /server/i && $ua eq "") {
+					$line =~ /server\:\s(.+)\r\n/i;
+					$ua = $1 if ($1);
+				}
+				
 				if ($line =~ /Call-ID/i) {
 					$line =~ /Call-ID\:\s(.+)\r\n/i;
  
@@ -225,7 +245,7 @@ sub send_invite {
 					$data .= $line;
  
 					if ($line =~ /^\r\n/) {
-						print "[-] $response\n" if ($v ne 1);
+						print " => [$ua] $response\n" if ($v ne 1);
 						print "Receiving:\n=========\n$data" if ($v eq 1);
 
 						last LOOP if ($response !~ /^1/);
@@ -272,6 +292,7 @@ sub send_options {
 		my $data = "";
 		my $line = "";
 		my $cid = "";
+		my $ua = "";
 
 		print $sc $msg;
 
@@ -288,6 +309,15 @@ sub send_options {
 					if ($1) { $response = $1; }
 				}
 
+				if ($line =~ /user\-agent/i && $ua eq "") {
+					$line =~ /user\-agent\:\s(.+)\r\n/i;
+					$ua = $1 if ($1);
+				}
+				if ($line =~ /server/i && $ua eq "") {
+					$line =~ /server\:\s(.+)\r\n/i;
+					$ua = $1 if ($1);
+				}
+				
 				if ($line =~ /Call-ID/i) {
 					$line =~ /Call-ID\:\s(.+)\r\n/i;
  
@@ -298,7 +328,7 @@ sub send_options {
 					$data .= $line;
  
 					if ($line =~ /^\r\n/) {
-						print "[-] $response\n" if ($v ne 1);
+						print " => [$ua] $response\n" if ($v ne 1);
 						print "Receiving:\n=========\n$data" if ($v eq 1);
 
 						last LOOP if ($response !~ /^1/);
