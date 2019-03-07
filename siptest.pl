@@ -21,7 +21,6 @@ my $to = '';		# destination number
 my $fromname = ''; # from name
 my $method = '';	# method to use (INVITE, REGISTER, OPTIONS)
 my $v = 0;		# verbose mode
-my $user = '';		# auth user
 my $proto = '';	# protocol (UDP, TCP)
 
 my $to_ip = '';
@@ -31,11 +30,10 @@ sub init() {
     # check params
     my $result = GetOptions ("h=s" => \$host,
 				"m=s" => \$method,
-				"d=s" => \$to,
-				"s=s" => \$from,
+				"t=s" => \$to,
+				"f=s" => \$from,
 				"fn=s" => \$fromname,
 				"ip=s" => \$from_ip,
-				"u=s" => \$user,
 				"l=s" => \$lport,
 				"r=s" => \$dport,
 				"proto=s" => \$proto,
@@ -46,9 +44,8 @@ sub init() {
  
 	$lport = "5070" if ($lport eq "");
 	$dport = "5060" if ($dport eq "");
-	$user = "100" if ($user eq "");
-	$from = $user if ($from eq "");
-	$to = $user if ($to eq "");
+	$from = "100" if ($from eq "");
+	$to = "100" if ($to eq "");
 	$proto = lc($proto);
 	$proto = "udp" if ($proto ne "tcp" && $proto ne "udp");
 
@@ -58,7 +55,7 @@ sub init() {
  	my $ip = inet_ntoa(inet_aton($host));
 	$from_ip = $ip if ($from_ip eq "");
 
-	send_message($ip, $from_ip, $lport, $dport, $from, $fromname, $to, $user, $proto);
+	send_message($ip, $from_ip, $lport, $dport, $from, $fromname, $to, $proto);
 
 	exit;
 }
@@ -71,12 +68,11 @@ sub send_message {
 	my $from = shift;
 	my $fromname = shift;
 	my $to = shift;
-	my $user = shift;
 	my $proto = shift;
 
-	send_register($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $user, $proto) if ($method eq "REGISTER");
-	send_invite($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $user, $proto) if ($method eq "INVITE");
-	send_options($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $user, $proto) if ($method eq "OPTIONS");	
+	send_register($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "REGISTER");
+	send_invite($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "INVITE");
+	send_options($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "OPTIONS");	
 }
  
 # Send REGISTER message
@@ -88,7 +84,6 @@ sub send_register {
 	my $from = shift;
 	my $fromname = shift;
 	my $to = shift;
-	my $user = shift;
 	my $proto = shift;
 	my $response = "";
 	my $cseq = 1;
@@ -101,9 +96,9 @@ sub send_register {
 	
 		my $msg = "REGISTER sip:".$to_ip." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: $fromname <sip:".$user."@".$to_ip.">;tag=0c26cd11\r\n";
-		$msg .= "To: <sip:".$user."@".$to_ip.">\r\n";
-		$msg .= "Contact: <sip:".$user."@".$from_ip.":$lport;transport=$proto>\r\n";
+		$msg .= "From: $fromname <sip:".$from."@".$to_ip.">;tag=0c26cd11\r\n";
+		$msg .= "To: <sip:".$to."@".$to_ip.">\r\n";
+		$msg .= "Contact: <sip:".$from."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Call-ID: ".$callid."\r\n";
 		$msg .= "CSeq: $cseq REGISTER\r\n";
 		$msg .= "User-Agent: $useragent\r\n";
@@ -165,7 +160,6 @@ sub send_invite {
 	my $from = shift;
 	my $fromname = shift;
 	my $to = shift;
-	my $user = shift;
 	my $proto = shift;
 	my $response = "";
 	my $cseq = 1;
@@ -178,7 +172,7 @@ sub send_invite {
 	
 		my $msg = "INVITE sip:".$to."@".$to_ip." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: \"$from\" <sip:".$user."@".$to_ip.">;tag=0c26cd11\r\n";
+		$msg .= "From: $fromname <sip:".$from."@".$to_ip.">;tag=0c26cd11\r\n";
 		$msg .= "To: <sip:".$to."@".$to_ip.">\r\n";
 		$msg .= "Contact: <sip:".$from."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Supported: replaces, timer, path\r\n";
@@ -253,7 +247,6 @@ sub send_options {
 	my $from = shift;
 	my $fromname = shift;
 	my $to = shift;
-	my $user = shift;
 	my $proto = shift;
 	my $response = "";
 	my $cseq = 1;
@@ -266,9 +259,9 @@ sub send_options {
 	
 		my $msg = "OPTIONS sip:".$to."@".$to_ip." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: <sip:".$user."@".$to_ip.">;tag=0c26cd11\r\n";
-		$msg .= "To: <sip:".$user."@".$to_ip.">\r\n";
-		$msg .= "Contact: <sip:".$user."@".$from_ip.":$lport;transport=$proto>\r\n";
+		$msg .= "From: $fromname <sip:".$from."@".$to_ip.">;tag=0c26cd11\r\n";
+		$msg .= "To: <sip:".$to."@".$to_ip.">\r\n";
+		$msg .= "Contact: <sip:".$from."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Call-ID: $callid\r\n";
 		$msg .= "CSeq: $cseq OPTIONS\r\n";
 		$msg .= "User-Agent: $useragent\r\n";
@@ -348,8 +341,9 @@ Usage: perl $0 -h <host> [options]
  
 == Options ==
 -m  <string>     = Method: REGISTER/INVITE/OPTIONS (default: OPTIONS)
--u  <string>     = Username
--s  <integer>    = Source number (CallerID) (default: 100)
+-f  <string>     = From user (default: 100)
+-fn <string>     = From name (default blank)
+-t  <string>     = To user (default: 100)
 -d  <integer>    = Destination number (default: 100)
 -r  <integer>    = Remote port (default: 5060)
 -proto <string>  = Protocol (udp, tcp) - By default: UDP)
@@ -359,9 +353,8 @@ Usage: perl $0 -h <host> [options]
  
 == Examples ==
 \$perl $0 -h 192.168.0.1
-\tTo search SIP services on 192.168.0.1 port 5060 (using OPTIONS method)
 \$perl $0 -h 192.168.0.1 -m INVITE
-\tTo search SIP services on 192.168.0.1 port 5060 (using INVITE method)
+\$perl $0 -h 192.168.0.1 -m INVITE -f 666666666 -fn Devil -t 200
 
 };
  
