@@ -25,6 +25,7 @@ my $proto = '';	# protocol (UDP, TCP)
 
 my $to_ip = '';
 my $from_ip = '';
+my $domain = '';
 
 sub init() {
     # check params
@@ -33,6 +34,7 @@ sub init() {
 				"t=s" => \$to,
 				"f=s" => \$from,
 				"fn=s" => \$fromname,
+				"d=s" => \$domain,
 				"ip=s" => \$from_ip,
 				"l=s" => \$lport,
 				"r=s" => \$dport,
@@ -55,7 +57,8 @@ sub init() {
  	my $ip = inet_ntoa(inet_aton($host));
 	$from_ip = $ip if ($from_ip eq "");
 
-	send_message($ip, $from_ip, $lport, $dport, $from, $fromname, $to, $proto);
+	$domain = $from_ip if ($domain eq "");
+	send_message($ip, $from_ip, $domain, $lport, $dport, $from, $fromname, $to, $proto);
 
 	exit;
 }
@@ -63,6 +66,7 @@ sub init() {
 sub send_message {
 	my $to_ip = shift;
 	my $from_ip = shift;
+	my $domain = shift;
 	my $lport = shift;
 	my $dport = shift;
 	my $from = shift;
@@ -70,14 +74,15 @@ sub send_message {
 	my $to = shift;
 	my $proto = shift;
 
-	send_register($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "REGISTER");
-	send_invite($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "INVITE");
-	send_options($from_ip, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "OPTIONS");	
+	send_register($from_ip, $domain, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "REGISTER");
+	send_invite($from_ip, $domain, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "INVITE");
+	send_options($from_ip, $domain, $to_ip, $lport, $dport, $from, $fromname, $to, $proto) if ($method eq "OPTIONS");	
 }
  
 # Send REGISTER message
 sub send_register {
 	my $from_ip = shift;
+	my $domain = shift;
 	my $to_ip = shift;
 	my $lport = shift;
 	my $dport = shift;
@@ -94,10 +99,10 @@ sub send_register {
 		my $branch = &generate_random_string(71, 0);
 		my $callid = &generate_random_string(32, 1);
 	
-		my $msg = "REGISTER sip:".$to_ip." SIP/2.0\r\n";
+		my $msg = "REGISTER sip:".$domain." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: $fromname <sip:".$from."@".$to_ip.">;tag=0c26cd11\r\n";
-		$msg .= "To: <sip:".$to."@".$to_ip.">\r\n";
+		$msg .= "From: $fromname <sip:".$from."@".$domain.">;tag=0c26cd11\r\n";
+		$msg .= "To: <sip:".$to."@".$domain.">\r\n";
 		$msg .= "Contact: <sip:".$from."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Call-ID: ".$callid."\r\n";
 		$msg .= "CSeq: $cseq REGISTER\r\n";
@@ -164,6 +169,7 @@ sub send_register {
 # Send INVITE message
 sub send_invite {
 	my $from_ip = shift;
+	my $domain = shift;
 	my $to_ip = shift;
 	my $lport = shift;
 	my $dport = shift;
@@ -180,10 +186,10 @@ sub send_invite {
 		my $branch = &generate_random_string(71, 0);
 		my $callid = &generate_random_string(32, 1);
 	
-		my $msg = "INVITE sip:".$to."@".$to_ip." SIP/2.0\r\n";
+		my $msg = "INVITE sip:".$to."@".$domain." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: $fromname <sip:".$from."@".$to_ip.">;tag=0c26cd11\r\n";
-		$msg .= "To: <sip:".$to."@".$to_ip.">\r\n";
+		$msg .= "From: $fromname <sip:".$from."@".$domain.">;tag=0c26cd11\r\n";
+		$msg .= "To: <sip:".$to."@".$domain.">\r\n";
 		$msg .= "Contact: <sip:".$from."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Supported: replaces, timer, path\r\n";
 		$msg .= "P-Early-Media: Supported\r\n";
@@ -261,6 +267,7 @@ sub send_invite {
 # Send OPTIONS message
 sub send_options {
 	my $from_ip = shift;
+	my $domain = shift;
 	my $to_ip = shift;
 	my $lport = shift;
 	my $dport = shift;
@@ -277,10 +284,10 @@ sub send_options {
 		my $branch = &generate_random_string(71, 0);
 		my $callid = &generate_random_string(32, 1);
 	
-		my $msg = "OPTIONS sip:".$to."@".$to_ip." SIP/2.0\r\n";
+		my $msg = "OPTIONS sip:".$to."@".$domain." SIP/2.0\r\n";
 		$msg .= "Via: SIP/2.0/".uc($proto)." $from_ip:$lport;branch=$branch\r\n";
-		$msg .= "From: $fromname <sip:".$from."@".$to_ip.">;tag=0c26cd11\r\n";
-		$msg .= "To: <sip:".$to."@".$to_ip.">\r\n";
+		$msg .= "From: $fromname <sip:".$from."@".$domain.">;tag=0c26cd11\r\n";
+		$msg .= "To: <sip:".$to."@".$domain.">\r\n";
 		$msg .= "Contact: <sip:".$from."@".$from_ip.":$lport;transport=$proto>\r\n";
 		$msg .= "Call-ID: $callid\r\n";
 		$msg .= "CSeq: $cseq OPTIONS\r\n";
@@ -374,7 +381,7 @@ Usage: perl $0 -h <host> [options]
 -f  <string>     = From user (default: 100)
 -fn <string>     = From name (default blank)
 -t  <string>     = To user (default: 100)
--d  <integer>    = Destination number (default: 100)
+-d  <integer>    = Domain (default: Destination IP)
 -r  <integer>    = Remote port (default: 5060)
 -proto <string>  = Protocol (udp, tcp) - By default: UDP)
 -ip <string>     = Source IP (by default it is the same as host)
